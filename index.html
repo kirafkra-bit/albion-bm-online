@@ -25,21 +25,27 @@
 
 <div class="container">
 
-    <div id="authPanel">
-    <div id="loggedOutView">
-        <p>Redirecting to sign in...</p>
-    </div>
-    <div id="loggedInView" style="display:none;">
-        <span id="userEmail"></span>
-        <button onclick="fbSignOut()">Log out</button>
-    </div>
-</div>
-
 <div id="appContent" style="display:none;">
 
 <!-- HEADER -->
 
 <div class="top-bar">
+
+    <div id="authPanel">
+        <div id="loggedOutView">
+            <p>Redirecting to sign in...</p>
+        </div>
+        <div id="loggedInView" class="account-menu" style="display:none;">
+            <div class="account-details">
+                <span class="account-label">SIGNED IN AS</span>
+                <span id="userEmail" class="account-email"></span>
+            </div>
+            <button id="logoutButton" class="logout-btn" type="button" onclick="handleLogout()">
+                <span aria-hidden="true">↪</span>
+                Log out
+            </button>
+        </div>
+    </div>
 
     <h1>
         Calc 101
@@ -682,6 +688,21 @@ function handleAuthUI(user) {
         loadJournal();
     } else {
         window.location.replace("login.html");
+    }
+
+    async function handleLogout() {
+        const button = document.getElementById("logoutButton");
+        if (!button) return;
+        button.disabled = true;
+        button.classList.add("is-loading");
+        try {
+            await window.firebaseReady;
+            await window.fbSignOut();
+        } catch (error) {
+            console.error("Failed to sign out:", error);
+            button.disabled = false;
+            button.classList.remove("is-loading");
+        }
     }
 }
 
