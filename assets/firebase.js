@@ -21,7 +21,6 @@ import {
   doc,
   query,
   where,
-  orderBy,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
@@ -94,13 +93,17 @@ window.fbSaveHistory = async function (entry) {
 };
 
 window.fbLoadHistory = async function () {
-  const q = query(
-    historyCol,
-    where("uid", "==", currentUid()),
-    orderBy("createdAt", "desc")
-  );
+  // Filter by owner in Firestore, then sort locally to avoid requiring
+  // a composite index in every Firebase project.
+  const q = query(historyCol, where("uid", "==", currentUid()));
   const snap = await getDocs(q);
-  return snap.docs.map(d => ({ ...d.data(), __docId: d.id }));
+  return snap.docs
+    .map(d => ({ ...d.data(), __docId: d.id }))
+    .sort((a, b) => {
+      const aTime = a.createdAt?.toMillis?.() || 0;
+      const bTime = b.createdAt?.toMillis?.() || 0;
+      return bTime - aTime;
+    });
 };
 
 window.fbDeleteHistory = async function (docId) {

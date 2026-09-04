@@ -2418,8 +2418,13 @@ async function loadHistory() {
         craftHistory = await window.fbLoadHistory();
 
     }catch(error) {
-        console.error("Failed to load from your database history (firebase)")
+        console.error("Failed to load crafting history from Firebase:", error);
         craftHistory = [];
+        const list = document.getElementById("historyList");
+        if (list) {
+            list.innerHTML =
+                '<div class="history-empty">Unable to load history. Please refresh and try again.</div>';
+        }
     }
     renderHistory();
 
