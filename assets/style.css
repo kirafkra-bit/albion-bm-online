@@ -143,8 +143,8 @@ body {
     align-items: center;
     gap: 10px;
     color: #f8fafc;
-    font-size: 14px;
-    font-weight: bold;
+    font-size: clamp(18px, 3.6vw, 24px);
+    font-weight: 800;
     text-decoration: none;
     line-height: 1.4;
 }
