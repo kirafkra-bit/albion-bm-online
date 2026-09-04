@@ -1,0 +1,42 @@
+[
+  {
+    "date": "8/11/26",
+    "item": "T5 CLAYMORE",
+    "investment": 4120600,
+    "notes": "",
+    "snapshot": {
+      "itemName": "T5 CLAYMORE",
+      "quantity": "100",
+      "sellPrice": "57390",
+      "craftingFee": "576",
+      "materials": [
+        {
+          "amount": "20",
+          "name": "BAR",
+          "price": "1310",
+          "totalNeeded": "2,000",
+          "returned": "300"
+        },
+        {
+          "amount": "12",
+          "name": "LEATHER",
+          "price": "1800",
+          "totalNeeded": "1,200",
+          "returned": "180"
+        }
+      ],
+      "results": {
+        "grossMaterialCost": 4780000,
+        "returnedValue": 717000,
+        "craftingFees": 57600,
+        "investment": 4120600,
+        "revenue": 5739000,
+        "profit": 1618400,
+        "profitPerItem": 16184,
+        "margin": 28.20003484927688,
+        "roi": 39.27583361646362
+      },
+      "notes": ""
+    }
+  }
+]

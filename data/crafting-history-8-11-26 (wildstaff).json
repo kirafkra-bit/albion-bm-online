@@ -1,0 +1,42 @@
+[
+  {
+    "date": "8/11/26",
+    "item": "wildstaff",
+    "investment": 1147000,
+    "notes": "wildstaff t4",
+    "snapshot": {
+      "itemName": "wildstaff",
+      "quantity": "100",
+      "sellPrice": "17500",
+      "craftingFee": "590",
+      "materials": [
+        {
+          "amount": "20",
+          "name": "planks",
+          "price": "400",
+          "totalNeeded": "2,000",
+          "returned": "300"
+        },
+        {
+          "amount": "12",
+          "name": "cloths",
+          "price": "400",
+          "totalNeeded": "1,200",
+          "returned": "180"
+        }
+      ],
+      "results": {
+        "grossMaterialCost": 1280000,
+        "returnedValue": 192000,
+        "craftingFees": 59000,
+        "investment": 1147000,
+        "revenue": 1750000,
+        "profit": 603000,
+        "profitPerItem": 6030,
+        "margin": 34.457142857142856,
+        "roi": 52.571926765475155
+      },
+      "notes": "wildstaff t4"
+    }
+  }
+]

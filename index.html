@@ -1,0 +1,3363 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Albion Black Market Crafting Calculator</title>
+<link rel="stylesheet" href="assets/style.css">
+<script>
+    window.firebaseReady = new Promise(resolve => {
+        window.resolveFirebaseReady = resolve;
+    });
+    
+
+</script>
+
+<script type="module" src="assets/firebase.js"></script>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div id="authPanel">
+    <div id="loggedOutView">
+        <button onclick="fbSignIn()">Sign in with Google</button>
+    </div>
+    <div id="loggedInView" style="display:none;">
+        <span id="userEmail"></span>
+        <button onclick="fbSignOut()">Log out</button>
+    </div>
+</div>
+
+<div id="appContent" style="display:none;">
+
+<!-- HEADER -->
+
+<div class="top-bar">
+
+    <h1>
+        Calc 101
+        <span class="bm-badge">BLACK MARKET</span>
+    </h1>
+
+    <button
+        class="history-btn"
+        onclick="openHistory()"
+    >
+        History
+    </button>
+
+</div>
+
+
+<!-- CRAFTED ITEM -->
+
+<div class="card">
+
+<h2>Crafted Item</h2>
+
+<div class="item-grid">
+
+    <div class="input-group">
+
+        <label>Item Name</label>
+
+        <input
+            type="text"
+            id="itemName"
+            placeholder="Example: Fine Cloth Armor"
+        >
+
+    </div>
+
+
+    <div class="input-group">
+
+        <label>Quantity to Craft</label>
+
+        <input
+            type="number"
+            id="quantity"
+            value="100"
+            min="0"
+            step="1"
+            oninput="calculate()"
+        >
+
+    </div>
+
+
+    <div class="input-group">
+
+        <label>Black Market Price per Item</label>
+
+        <input
+            type="number"
+            id="sellPrice"
+            value="0"
+            min="0"
+            step="1"
+            oninput="calculate()"
+        >
+
+    </div>
+
+
+    <div class="input-group">
+
+        <label>Crafting Fee per Item</label>
+
+        <input
+            type="number"
+            id="craftingFee"
+            value="1000"
+            min="0"
+            step="1"
+            oninput="calculate()"
+        >
+
+    </div>
+
+</div>
+
+
+<div class="settings-box">
+
+    <div class="settings-title">
+        Black Market Settings
+    </div>
+
+    <div class="settings-grid">
+
+        <div class="input-group">
+
+            <label>Effective Resource Return Rate (%)</label>
+
+            <input
+                type="number"
+                id="returnRate"
+                value="24.8"
+                min="0"
+                max="99.99"
+                step="0.10"
+                oninput="setReturnRate(this.value)"
+            >
+
+        </div>
+
+
+        <div class="input-group">
+
+            <label>Black Market Selling Tax</label>
+
+            <select
+                id="blackMarketTax"
+                onchange="handleTaxChange()"
+            >
+
+                <option value="4" selected>
+                    Premium — 4%
+                </option>
+
+                <option value="8">
+                    No Premium — 8%
+                </option>
+
+                <option value="0">
+                    No Tax
+                </option>
+
+                <option value="custom">
+                    Custom
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div
+            class="input-group"
+            id="customTaxGroup"
+            style="display:none;"
+        >
+
+            <label>Custom Tax (%)</label>
+
+            <input
+                type="number"
+                id="customTax"
+                value="4"
+                min="0"
+                max="100"
+                step="0.01"
+                oninput="setBlackMarketTax(this.value)"
+            >
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="info">
+
+
+
+</div>
+
+</div>
+
+
+<!-- MATERIALS -->
+
+<div class="card">
+
+<h2>What it Needs</h2>
+
+<div class="material-header">
+
+    <div>Amount / Item</div>
+    <div>Material</div>
+    <div class="price-header">
+        Price / Unit<br>
+        (10 % from orig price)
+    </div>
+    <div>Total Needed</div>
+    <div>Returned</div>
+    <div>Net Cost</div>
+    <div>RRR</div>
+
+</div>
+
+<div id="materials"></div>
+
+<button
+    class="add-btn"
+    onclick="addMaterial()"
+>
+    + Add Material
+</button>
+
+</div>
+
+
+<!-- JOURNAL -->
+
+<div class="card">
+
+<h2>Bought Journal</h2>
+
+<div class="journal-header">
+
+    <div>Item</div>
+    <div>Quantity</div>
+    <div>Cost / Unit</div>
+    <div>Sell / Unit</div>
+    <div>Total Cost</div>
+    <div>Profit / Unit</div>
+    <div>Total Profit</div>
+    <div></div>
+
+</div>
+
+<div id="journal"></div>
+
+<div class="journal-actions">
+
+    <button
+        class="add-btn"
+        onclick="addJournalEntry()"
+    >
+        + Add Entry
+    </button>
+
+    <button
+        class="save-btn"
+        onclick="saveJournal(true)"
+    >
+        Save Journal
+    </button>
+
+    <span
+        class="save-status"
+        id="journalSaveStatus"
+    >
+        Saved ✓
+    </span>
+
+</div>
+
+</div>
+
+
+<!-- RESULTS -->
+
+<div class="card">
+
+<h2>Crafting Results</h2>
+
+<div class="results">
+
+    <div class="result">
+
+        <div class="result-title">
+            Gross Material Cost
+        </div>
+
+        <div
+            class="result-value yellow"
+            id="grossMaterialCost"
+        >
+            0
+        </div>
+
+    </div>
+
+
+    <div class="result">
+
+        <div class="result-title">
+            Returned Material Value
+        </div>
+
+        <div
+            class="result-value purple"
+            id="returnedValue"
+        >
+            0
+        </div>
+
+    </div>
+
+
+    <div class="result">
+
+        <div class="result-title">
+            Net Material Cost
+        </div>
+
+        <div
+            class="result-value yellow"
+            id="netMaterialCost"
+        >
+            0
+        </div>
+
+    </div>
+
+
+    <div class="result">
+
+        <div class="result-title">
+            Crafting Fees
+        </div>
+
+        <div
+            class="result-value yellow"
+            id="craftingFees"
+        >
+            0
+        </div>
+
+    </div>
+
+
+    <div class="result">
+
+        <div class="result-title">
+            Total Investment
+        </div>
+
+        <div
+            class="result-value"
+            id="investment"
+        >
+            0
+        </div>
+
+    </div>
+
+
+    <div class="result">
+
+        <div class="result-title">
+            Gross Black Market Revenue
+        </div>
+
+        <div
+            class="result-value blue"
+            id="grossRevenue"
+        >
+            0
+        </div>
+
+    </div>
+
+
+    <div class="result">
+
+        <div class="result-title">
+            Black Market Tax
+        </div>
+
+        <div
+            class="result-value red"
+            id="blackMarketTaxValue"
+        >
+            0
+        </div>
+
+    </div>
+
+
+    <div class="result">
+
+        <div class="result-title">
+            Net Revenue
+        </div>
+
+        <div
+            class="result-value blue"
+            id="revenue"
+        >
+            0
+        </div>
+
+    </div>
+
+
+    <div class="result">
+
+        <div class="result-title">
+            Profit
+        </div>
+
+        <div
+            class="result-value profit"
+            id="profit"
+        >
+            0
+        </div>
+
+    </div>
+
+
+    <div class="result">
+
+        <div class="result-title">
+            Profit / Item
+        </div>
+
+        <div
+            class="result-value"
+            id="profitPerItem"
+        >
+            0
+        </div>
+
+    </div>
+
+
+    <div class="result">
+
+        <div class="result-title">
+            Profit Margin
+        </div>
+
+        <div
+            class="result-value"
+            id="margin"
+        >
+            0%
+        </div>
+
+    </div>
+
+
+    <div class="result">
+
+        <div class="result-title">
+            ROI
+        </div>
+
+        <div
+            class="result-value"
+            id="roi"
+        >
+            0%
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="summary">
+
+    <div
+        class="summary-title"
+        id="summaryTitle"
+    >
+        Estimated Profit
+    </div>
+
+    <div
+        class="summary-number profit"
+        id="summaryProfit"
+    >
+        0
+    </div>
+
+</div>
+
+</div>
+
+
+<!-- NOTES -->
+
+<div class="card">
+
+<h2>Crafting Notes</h2>
+
+<textarea
+    class="notes-area"
+    id="craftNotes"
+    placeholder="Write any notes about this craft..."
+></textarea>
+
+<button
+    class="save-btn"
+    onclick="saveToHistory()"
+>
+    Save to History
+</button>
+
+</div>
+
+</div>
+
+
+<!-- HISTORY MODAL -->
+
+<div
+    class="modal-overlay"
+    id="historyModal"
+>
+
+    <div class="modal-box">
+
+        <div class="modal-header">
+
+            <h2>Crafting History</h2>
+
+            <div class="modal-header-actions">
+
+                <button
+                    class="modal-action-btn"
+                    id="jsonToggleBtn"
+                    onclick="toggleJSONView()"
+                >
+                    View JSON
+                </button>
+
+                <button
+                    class="modal-action-btn"
+                    onclick="exportHistoryJSON()"
+                >
+                    Export JSON
+                </button>
+
+                <button
+                    class="close-btn"
+                    onclick="closeHistory()"
+                >
+                    ×
+                </button>
+
+            </div>
+
+        </div>
+
+        <div
+            class="history-list"
+            id="historyList"
+        >
+        </div>
+
+        <pre
+            class="history-json"
+            id="historyJSON"
+        ></pre>
+
+    </div>
+
+</div>
+
+
+<!-- STATIC SNAPSHOT MODAL -->
+
+<div
+    class="modal-overlay static-modal"
+    id="staticModal"
+>
+
+    <div class="modal-box">
+
+        <div class="modal-header">
+
+            <div class="modal-header-left">
+
+                <button
+                    class="back-btn"
+                    onclick="backToHistory()"
+                >
+                    ← Back
+                </button>
+
+                <h2>Saved Craft</h2>
+
+            </div>
+
+            <button
+                class="close-btn"
+                onclick="closeStaticView()"
+            >
+                ×
+            </button>
+
+        </div>
+
+        <div
+            class="static-content"
+            id="staticContent"
+        >
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   STATE
+   ========================================================= */
+
+let materialID = 0;
+let journalID = 0;
+
+let craftHistory = [];
+let journalEntries = [];
+
+let showingJSON = false;
+
+let returnRate = 15;
+
+let blackMarketTaxRate = 4;
+
+let lastInvestment = 0;
+
+let lastResults = {};
+
+function handleAuthUI(user) {
+    const loggedOut = document.getElementById("loggedOutView");
+    const loggedIn = document.getElementById("loggedInView");
+    const appContent = document.getElementById("appContent");
+    const userEmail = document.getElementById("userEmail");
+
+    if (user) {
+        loggedOut.style.display = "none";
+        loggedIn.style.display = "block";
+        appContent.style.display = "block";
+        userEmail.textContent = user.email;
+        loadHistory();
+        loadJournal();
+    } else {
+        loggedOut.style.display = "block";
+        loggedIn.style.display = "none";
+        appContent.style.display = "none";
+        craftHistory = [];
+    }
+}
+
+
+const STORAGE_KEY_HISTORY = "craftHistory";
+
+const STORAGE_KEY_JOURNAL = "boughtJournal";
+
+
+/* =========================================================
+   MATERIAL SELECT OPTIONS
+   ========================================================= */
+
+const AMOUNT_OPTIONS = [4, 8, 12, 16, 20, 24];
+
+const MATERIAL_NAME_OPTIONS = ["Bar", "Cloth", "Leather", "Planks"];
+
+const PRICE_OPTIONS = [450, 500, 550, 600, 1200, 1250, 1350, 1400, 1500, 1600, 1800, 1850];
+
+
+/* =========================================================
+   STORAGE ADAPTER
+   =========================================================
+
+   Supports the original window.storage environment.
+
+   Falls back to localStorage when opened as a normal HTML file.
+*/
+
+const storageAdapter = {
+
+    async get(key) {
+
+        try {
+
+            if (
+                window.storage &&
+                typeof window.storage.get === "function"
+            ) {
+
+                const result =
+                    await window.storage.get(key, false);
+
+                return result
+                    ? result.value
+                    : null;
+
+            }
+
+            return localStorage.getItem(key);
+
+        } catch (error) {
+
+            console.error("Storage get failed:", error);
+
+            return null;
+
+        }
+
+    },
+
+
+    async set(key, value) {
+
+        try {
+
+            if (
+                window.storage &&
+                typeof window.storage.set === "function"
+            ) {
+
+                await window.storage.set(
+                    key,
+                    value,
+                    false
+                );
+
+                return;
+
+            }
+
+            localStorage.setItem(key, value);
+
+        } catch (error) {
+
+            console.error("Storage set failed:", error);
+
+        }
+
+    }
+
+};
+
+
+/* =========================================================
+   NUMBER HELPERS
+   ========================================================= */
+
+function getNumber(value) {
+
+    const number = Number(value);
+
+    if (!Number.isFinite(number)) {
+        return 0;
+    }
+
+    return Math.max(0, number);
+
+}
+
+
+function formatNumber(number) {
+
+    if (!Number.isFinite(number)) {
+        number = 0;
+    }
+
+    return new Intl.NumberFormat("en-US", {
+
+        maximumFractionDigits: 2
+
+    }).format(number);
+
+}
+
+
+function setText(id, value) {
+
+    const element =
+        document.getElementById(id);
+
+    if (!element) {
+        return;
+    }
+
+    if (typeof value === "number") {
+
+        element.textContent =
+            formatNumber(value);
+
+    } else {
+
+        element.textContent =
+            value;
+
+    }
+
+}
+
+
+/* =========================================================
+   HTML ESCAPE
+   ========================================================= */
+
+function escapeHTML(value) {
+
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+/* =========================================================
+   RRR
+   ========================================================= */
+
+function setReturnRate(rate) {
+
+    returnRate =
+        Math.min(
+            99.99,
+            Math.max(
+                0,
+                getNumber(rate)
+            )
+        );
+
+    const input =
+        document.getElementById("returnRate");
+
+    if (input) {
+
+        input.value =
+            returnRate;
+
+    }
+
+    calculate();
+
+}
+
+
+/* =========================================================
+   BLACK MARKET TAX
+   ========================================================= */
+
+function handleTaxChange() {
+
+    const select =
+        document.getElementById(
+            "blackMarketTax"
+        );
+
+    const customGroup =
+        document.getElementById(
+            "customTaxGroup"
+        );
+
+
+    if (select.value === "custom") {
+
+        customGroup.style.display =
+            "block";
+
+
+        const customTax =
+            document.getElementById(
+                "customTax"
+            );
+
+        blackMarketTaxRate =
+            getNumber(customTax.value);
+
+    } else {
+
+        customGroup.style.display =
+            "none";
+
+        blackMarketTaxRate =
+            getNumber(select.value);
+
+    }
+
+
+    calculate();
+
+}
+
+
+function setBlackMarketTax(rate) {
+
+    blackMarketTaxRate =
+        Math.min(
+            100,
+            Math.max(
+                0,
+                getNumber(rate)
+            )
+        );
+
+    calculate();
+
+}
+
+
+/* =========================================================
+   MATERIAL FIELD BUILDERS (Amount / Name / Price)
+   ========================================================= */
+
+function buildAmountFieldHTML(amount) {
+
+    const value =
+        (amount === undefined || amount === null || amount === "")
+            ? ""
+            : String(amount);
+
+    let options =
+        '<option value="" disabled' +
+        (value === "" ? " selected" : "") +
+        '>Select amount</option>';
+
+    AMOUNT_OPTIONS.forEach(opt => {
+
+        options +=
+            `<option value="${opt}"` +
+            (String(opt) === value ? " selected" : "") +
+            `>${opt}</option>`;
+
+    });
+
+    return (
+        '<select class="material-amount" onchange="calculate()" oninput="calculate()">' +
+        options +
+        '</select>'
+    );
+
+}
+
+
+function buildMaterialNameFieldHTML(name) {
+
+    const trimmed =
+        (name ?? "").toString().trim();
+
+    /*
+       If the saved name doesn't match one of the
+       preset options, fall back to a free-text field
+       so custom items keep working.
+    */
+
+    if (
+        trimmed !== "" &&
+        !MATERIAL_NAME_OPTIONS.includes(trimmed)
+    ) {
+
+        return (
+            '<input type="text" class="material-name" placeholder="Custom material" value="' +
+            escapeHTML(trimmed) +
+            '" oninput="calculate()">'
+        );
+
+    }
+
+    let options =
+        '<option value="" disabled' +
+        (trimmed === "" ? " selected" : "") +
+        '>Select material</option>';
+
+    MATERIAL_NAME_OPTIONS.forEach(opt => {
+
+        options +=
+            `<option value="${opt}"` +
+            (opt === trimmed ? " selected" : "") +
+            `>${opt}</option>`;
+
+    });
+
+    options +=
+        '<option value="__other__">+ Add other item</option>';
+
+    return (
+        '<select class="material-name" onchange="handleMaterialNameChange(this)" oninput="calculate()">' +
+        options +
+        '</select>'
+    );
+
+}
+
+
+function buildMaterialPriceFieldHTML(price) {
+
+    const raw =
+        (price === undefined || price === null || price === "")
+            ? ""
+            : String(price);
+
+    const numeric =
+        raw === "" ? null : Number(raw);
+
+    /*
+       If the saved price doesn't match one of the
+       preset options, fall back to a free-number field.
+    */
+
+    if (
+        numeric !== null &&
+        Number.isFinite(numeric) &&
+        !PRICE_OPTIONS.includes(numeric)
+    ) {
+
+        return (
+            '<input type="number" class="material-price" placeholder="Custom price" min="0" step="1" value="' +
+            escapeHTML(raw) +
+            '" oninput="calculate()">'
+        );
+
+    }
+
+    let options =
+        '<option value="" disabled' +
+        (numeric === null ? " selected" : "") +
+        '>Select price</option>;</option>';
+
+    PRICE_OPTIONS.forEach(opt => {
+
+        options +=
+            `<option value="${opt}"` +
+            (opt === numeric ? " selected" : "") +
+            `>${opt}</option>`;
+
+    });
+
+    options +=
+        '<option value="__other__">+ Add specific price</option>';
+
+    return (
+        '<select class="material-price" onchange="handleMaterialPriceChange(this)" oninput="calculate()">' +
+        options +
+        '</select>'
+    );
+
+}
+
+function handleMaterialNameChange(select) {
+
+    if (select.value === "__other__") {
+
+        const input =
+            document.createElement("input");
+
+        input.type = "text";
+
+        input.className = "material-name";
+
+        input.placeholder = "Custom material";
+
+        input.oninput = calculate;
+
+        select.replaceWith(input);
+
+        input.focus();
+
+    }
+
+    calculate();
+}
+
+function handleMaterialPriceChange(select) {
+
+    if (select.value === "__other__") {
+
+        const input =
+            document.createElement("input");
+
+        input.type = "number";
+
+        input.className = "material-price";
+
+        input.placeholder = "Custom price";
+
+        input.min = "0";
+
+        input.step = "1";
+
+        input.oninput = calculate;
+
+        select.replaceWith(input);
+
+        input.focus();
+
+    }
+
+    calculate();
+
+}
+
+
+/* =========================================================
+   MATERIAL
+   ========================================================= */
+
+function addMaterial(
+    amount = "",
+    name = "",
+    price = "",
+    returnable = true
+) {
+
+    materialID++;
+
+    const id = materialID;
+
+    const row =
+        document.createElement("div");
+
+    row.className =
+        "material-row";
+
+    row.id =
+        "material-" + id;
+
+    row.dataset.returnable =
+        returnable !== false
+            ? "true"
+            : "false";
+
+
+    row.innerHTML = `
+
+        ${buildAmountFieldHTML(amount)}
+
+
+        ${buildMaterialNameFieldHTML(name)}
+
+
+        ${buildMaterialPriceFieldHTML(price)}
+
+
+        <div class="material-box total-needed">
+            0
+        </div>
+
+
+        <div class="material-box returned">
+            0
+        </div>
+
+
+        <div class="material-box net-material-box net-material">
+            0
+        </div>
+
+
+        <div class="return-toggle">
+
+            <input
+                type="checkbox"
+                class="material-returnable"
+                ${returnable !== false ? "checked" : ""}
+                onchange="toggleMaterialReturnable(${id})"
+            >
+
+            <span>RRR</span>
+
+        </div>
+
+
+        <button
+            class="delete-btn"
+            onclick="removeMaterial(${id})"
+        >
+            ×
+        </button>
+
+    `;
+
+
+    document
+        .getElementById("materials")
+        .appendChild(row);
+
+
+    calculate();
+
+}
+
+
+function toggleMaterialReturnable(id) {
+
+    const row =
+        document.getElementById(
+            "material-" + id
+        );
+
+    if (!row) {
+        return;
+    }
+
+
+    const checkbox =
+        row.querySelector(
+            ".material-returnable"
+        );
+
+
+    row.dataset.returnable =
+        checkbox.checked
+            ? "true"
+            : "false";
+
+
+    calculate();
+
+}
+
+
+function removeMaterial(id) {
+
+    const row =
+        document.getElementById(
+            "material-" + id
+        );
+
+
+    if (row) {
+
+        row.remove();
+
+    }
+
+
+    calculate();
+
+}
+
+
+/* =========================================================
+   MATERIAL ENGINE
+   ========================================================= */
+
+function calculateMaterialRow(
+    row,
+    quantity
+) {
+
+    const amount =
+        getNumber(
+            row.querySelector(
+                ".material-amount"
+            )?.value
+        );
+
+
+    const price =
+        getNumber(
+            row.querySelector(
+                ".material-price"
+            )?.value
+        );
+
+
+    const returnable =
+        row.dataset.returnable !== "false";
+
+
+    /*
+       Total resources required.
+    */
+
+    const totalNeeded =
+        amount * quantity;
+
+
+    /*
+       Expected resource return.
+
+       RRR is applied only to materials marked
+       as returnable.
+    */
+
+    const returned =
+        returnable
+            ? totalNeeded *
+              (returnRate / 100)
+            : 0;
+
+
+    /*
+       Gross material cost.
+    */
+
+    const grossCost =
+        totalNeeded * price;
+
+
+    /*
+       Expected silver value of returned material.
+    */
+
+    const returnedValue =
+        returned * price;
+
+
+    /*
+       Effective material cost.
+    */
+
+    const netCost =
+        Math.max(
+            0,
+            grossCost - returnedValue
+        );
+
+
+    /*
+       Update display.
+    */
+
+    const neededBox =
+        row.querySelector(
+            ".total-needed"
+        );
+
+    if (neededBox) {
+
+        neededBox.textContent =
+            formatNumber(
+                totalNeeded
+            );
+
+    }
+
+
+    const returnedBox =
+        row.querySelector(
+            ".returned"
+        );
+
+    if (returnedBox) {
+
+        returnedBox.textContent =
+            formatNumber(
+                returned
+            );
+
+    }
+
+
+    const netBox =
+        row.querySelector(
+            ".net-material-box"
+        );
+
+    if (netBox) {
+
+        netBox.textContent =
+            formatNumber(
+                netCost
+            );
+
+    }
+
+
+    return {
+
+        amount,
+        price,
+        totalNeeded,
+        returned,
+        grossCost,
+        returnedValue,
+        netCost,
+        returnable
+
+    };
+
+}
+
+
+/* =========================================================
+   MAIN CRAFTING ENGINE
+   ========================================================= */
+
+function calculate() {
+
+    const quantity =
+        getNumber(
+            document.getElementById(
+                "quantity"
+            )?.value
+        );
+
+
+    const sellPrice =
+        getNumber(
+            document.getElementById(
+                "sellPrice"
+            )?.value
+        );
+
+
+    const craftingFeePerItem =
+        getNumber(
+            document.getElementById(
+                "craftingFee"
+            )?.value
+        );
+
+
+    /*
+       MATERIALS
+    */
+
+    let grossMaterialCost = 0;
+
+    let returnedMaterialValue = 0;
+
+    let netMaterialCost = 0;
+
+    let totalResourcesRequired = 0;
+
+    let totalResourcesReturned = 0;
+
+
+    const materialRows =
+        document.querySelectorAll(
+            ".material-row"
+        );
+
+
+    materialRows.forEach(row => {
+
+        const material =
+            calculateMaterialRow(
+                row,
+                quantity
+            );
+
+
+        grossMaterialCost +=
+            material.grossCost;
+
+
+        returnedMaterialValue +=
+            material.returnedValue;
+
+
+        netMaterialCost +=
+            material.netCost;
+
+
+        totalResourcesRequired +=
+            material.totalNeeded;
+
+
+        totalResourcesReturned +=
+            material.returned;
+
+    });
+
+
+    /*
+       CRAFTING FEE
+    */
+
+    const totalCraftingFees =
+        craftingFeePerItem *
+        quantity;
+
+
+    /*
+       TOTAL INVESTMENT
+    */
+
+    const totalInvestment =
+        netMaterialCost +
+        totalCraftingFees;
+
+
+    /*
+       BLACK MARKET GROSS REVENUE
+    */
+
+    const grossRevenue =
+        sellPrice *
+        quantity;
+
+
+    /*
+       BLACK MARKET TRANSACTION TAX
+    */
+
+    const blackMarketTax =
+        grossRevenue *
+        (blackMarketTaxRate / 100);
+
+
+    /*
+       NET REVENUE AFTER TAX
+    */
+
+    const netRevenue =
+        Math.max(
+            0,
+            grossRevenue -
+            blackMarketTax
+        );
+
+
+    /*
+       PROFIT
+    */
+
+    const profit =
+        netRevenue -
+        totalInvestment;
+
+
+    /*
+       PROFIT PER ITEM
+    */
+
+    const profitPerItem =
+        quantity > 0
+            ? profit / quantity
+            : 0;
+
+
+    /*
+       INVESTMENT PER ITEM
+    */
+
+    const investmentPerItem =
+        quantity > 0
+            ? totalInvestment / quantity
+            : 0;
+
+
+    /*
+       NET REVENUE PER ITEM
+    */
+
+    const netRevenuePerItem =
+        quantity > 0
+            ? netRevenue / quantity
+            : 0;
+
+
+    /*
+       PROFIT MARGIN
+
+       Profit / NET revenue.
+    */
+
+    const margin =
+        netRevenue > 0
+            ? (profit / netRevenue) *
+              100
+            : 0;
+
+
+    /*
+       ROI
+
+       Profit / investment.
+    */
+
+    const roi =
+        totalInvestment > 0
+            ? (profit / totalInvestment) *
+              100
+            : 0;
+
+
+    /*
+       MATERIAL COST PER ITEM
+    */
+
+    const materialCostPerItem =
+        quantity > 0
+            ? netMaterialCost /
+              quantity
+            : 0;
+
+
+    /*
+       STORE RESULTS
+
+       These values are also used by
+       the history snapshot.
+    */
+
+    lastInvestment =
+        totalInvestment;
+
+
+    lastResults = {
+
+        quantity,
+
+        sellPrice,
+
+        returnRate,
+
+        grossMaterialCost,
+
+        returnedValue:
+            returnedMaterialValue,
+
+        netMaterialCost,
+
+        craftingFees:
+            totalCraftingFees,
+
+        investment:
+            totalInvestment,
+
+        grossRevenue,
+
+        blackMarketTax,
+
+        blackMarketTaxRate,
+
+        revenue:
+            netRevenue,
+
+        profit,
+
+        profitPerItem,
+
+        investmentPerItem,
+
+        netRevenuePerItem,
+
+        materialCostPerItem,
+
+        margin,
+
+        roi,
+
+        totalResourcesRequired,
+
+        totalResourcesReturned
+
+    };
+
+
+    /*
+       DISPLAY
+    */
+
+    setText(
+        "grossMaterialCost",
+        grossMaterialCost
+    );
+
+
+    setText(
+        "returnedValue",
+        returnedMaterialValue
+    );
+
+
+    setText(
+        "netMaterialCost",
+        netMaterialCost
+    );
+
+
+    setText(
+        "craftingFees",
+        totalCraftingFees
+    );
+
+
+    setText(
+        "investment",
+        totalInvestment
+    );
+
+
+    setText(
+        "grossRevenue",
+        grossRevenue
+    );
+
+
+    setText(
+        "blackMarketTaxValue",
+        blackMarketTax
+    );
+
+
+    setText(
+        "revenue",
+        netRevenue
+    );
+
+
+    setText(
+        "profit",
+        profit
+    );
+
+
+    setText(
+        "profitPerItem",
+        profitPerItem
+    );
+
+
+    setText(
+        "margin",
+        margin.toFixed(2) +
+        "%"
+    );
+
+
+    setText(
+        "roi",
+        roi.toFixed(2) +
+        "%"
+    );
+
+
+    /*
+       PROFIT / LOSS COLORS
+    */
+
+    const profitElements = [
+
+        document.getElementById(
+            "profit"
+        ),
+
+        document.getElementById(
+            "profitPerItem"
+        ),
+
+        document.getElementById(
+            "margin"
+        ),
+
+        document.getElementById(
+            "roi"
+        ),
+
+        document.getElementById(
+            "summaryProfit"
+        )
+
+    ];
+
+
+    profitElements.forEach(
+        element => {
+
+            if (!element) {
+                return;
+            }
+
+
+            element.classList.remove(
+                "profit",
+                "loss"
+            );
+
+
+            element.classList.add(
+                profit >= 0
+                    ? "profit"
+                    : "loss"
+            );
+
+        }
+    );
+
+
+    /*
+       SUMMARY
+    */
+
+    const summaryTitle =
+        document.getElementById(
+            "summaryTitle"
+        );
+
+
+    const summaryProfit =
+        document.getElementById(
+            "summaryProfit"
+        );
+
+
+    if (profit >= 0) {
+
+        summaryTitle.textContent =
+            "Estimated Profit";
+
+
+        summaryProfit.textContent =
+            formatNumber(
+                profit
+            );
+
+    } else {
+
+        summaryTitle.textContent =
+            "Estimated Loss";
+
+
+        summaryProfit.textContent =
+            formatNumber(
+                Math.abs(profit)
+            );
+
+    }
+
+}
+
+
+/* =========================================================
+   JOURNAL
+   ========================================================= */
+
+function addJournalEntry(
+    item = "",
+    quantity = "",
+    costPerUnit = "",
+    sell = ""
+) {
+
+    journalID++;
+
+    const id = journalID;
+
+    const row =
+        document.createElement("div");
+
+    row.className =
+        "journal-row";
+
+    row.id =
+        "journal-" + id;
+
+
+    row.innerHTML = `
+
+        <input
+            type="text"
+            class="journal-item"
+            placeholder="Fine Cloth"
+            value="${escapeHTML(item)}"
+            oninput="calculateJournal()"
+        >
+
+
+        <input
+            type="number"
+            class="journal-quantity"
+            placeholder="100"
+            min="0"
+            step="0.01"
+            value="${escapeHTML(quantity)}"
+            oninput="calculateJournal()"
+        >
+
+
+        <input
+            type="number"
+            class="journal-cost-unit"
+            placeholder="2600"
+            min="0"
+            step="0.01"
+            value="${escapeHTML(costPerUnit)}"
+            oninput="calculateJournal()"
+        >
+
+
+        <input
+            type="number"
+            class="journal-sell"
+            placeholder="17000"
+            min="0"
+            step="0.01"
+            value="${escapeHTML(sell)}"
+            oninput="calculateJournal()"
+        >
+
+
+        <div class="journal-box cost-unit total-cost-box">
+            0
+        </div>
+
+
+        <div class="journal-box profit-unit-box">
+            0
+        </div>
+
+
+        <div class="journal-box total-profit">
+            0
+        </div>
+
+
+        <button
+            class="delete-btn"
+            onclick="removeJournalEntry(${id})"
+        >
+            ×
+        </button>
+
+    `;
+
+
+    document
+        .getElementById("journal")
+        .appendChild(row);
+
+
+    calculateJournal();
+
+}
+
+
+function removeJournalEntry(id) {
+
+    const row =
+        document.getElementById(
+            "journal-" + id
+        );
+
+
+    if (row) {
+
+        row.remove();
+
+    }
+
+
+    calculateJournal();
+
+    saveJournal(false);
+
+}
+
+
+function calculateJournal() {
+
+    const rows =
+        document.querySelectorAll(
+            ".journal-row"
+        );
+
+
+    rows.forEach(row => {
+
+        const quantity =
+            getNumber(
+                row.querySelector(
+                    ".journal-quantity"
+                )?.value
+            );
+
+
+        const costPerUnit =
+            getNumber(
+                row.querySelector(
+                    ".journal-cost-unit"
+                )?.value
+            );
+
+
+        const sell =
+            getNumber(
+                row.querySelector(
+                    ".journal-sell"
+                )?.value
+            );
+
+
+        /*
+           Journal uses the current Black Market
+           tax rate.
+
+           This makes the journal useful for
+           comparing bought materials/items against
+           actual Black Market revenue.
+        */
+
+        const netSell =
+            sell *
+            (1 - blackMarketTaxRate / 100);
+
+
+        const totalCost =
+            costPerUnit *
+            quantity;
+
+
+        const profitPerUnit =
+            netSell -
+            costPerUnit;
+
+
+        const totalProfit =
+            profitPerUnit *
+            quantity;
+
+
+        const costBox =
+            row.querySelector(
+                ".total-cost-box"
+            );
+
+
+        costBox.textContent =
+            formatNumber(
+                totalCost
+            );
+
+
+        const profitBox =
+            row.querySelector(
+                ".profit-unit-box"
+            );
+
+
+        profitBox.textContent =
+            formatNumber(
+                profitPerUnit
+            );
+
+
+        profitBox.classList.remove(
+            "profit-unit-pos",
+            "profit-unit-neg"
+        );
+
+
+        profitBox.classList.add(
+            profitPerUnit >= 0
+                ? "profit-unit-pos"
+                : "profit-unit-neg"
+        );
+
+
+        const totalBox =
+            row.querySelector(
+                ".total-profit"
+            );
+
+
+        totalBox.textContent =
+            formatNumber(
+                totalProfit
+            );
+
+
+        totalBox.classList.remove(
+            "total-profit-pos",
+            "total-profit-neg"
+        );
+
+
+        totalBox.classList.add(
+            totalProfit >= 0
+                ? "total-profit-pos"
+                : "total-profit-neg"
+        );
+
+    });
+
+}
+
+
+function collectJournalFromDOM() {
+
+    const rows =
+        document.querySelectorAll(
+            ".journal-row"
+        );
+
+
+    const entries = [];
+
+
+    rows.forEach(row => {
+
+        entries.push({
+
+            item:
+                row.querySelector(
+                    ".journal-item"
+                ).value,
+
+            quantity:
+                row.querySelector(
+                    ".journal-quantity"
+                ).value,
+
+            costPerUnit:
+                row.querySelector(
+                    ".journal-cost-unit"
+                ).value,
+
+            sell:
+                row.querySelector(
+                    ".journal-sell"
+                ).value
+
+        });
+
+    });
+
+
+    return entries;
+
+}
+
+
+async function saveJournal(showStatus) {
+
+    journalEntries =
+        collectJournalFromDOM();
+
+
+    await storageAdapter.set(
+        STORAGE_KEY_JOURNAL,
+        JSON.stringify(
+            journalEntries
+        )
+    );
+
+
+    if (showStatus) {
+
+        flashSaveStatus();
+
+    }
+
+}
+
+
+function flashSaveStatus() {
+
+    const status =
+        document.getElementById(
+            "journalSaveStatus"
+        );
+
+
+    status.classList.add(
+        "show"
+    );
+
+
+    setTimeout(() => {
+
+        status.classList.remove(
+            "show"
+        );
+
+    }, 1500);
+
+}
+
+
+async function loadJournal() {
+
+    try {
+
+        const value =
+            await storageAdapter.get(
+                STORAGE_KEY_JOURNAL
+            );
+
+
+        journalEntries =
+            value
+                ? JSON.parse(value)
+                : [];
+
+    } catch (error) {
+
+        journalEntries = [];
+
+    }
+
+
+    if (
+        !Array.isArray(
+            journalEntries
+        )
+    ) {
+
+        journalEntries = [];
+
+    }
+
+
+    if (
+        journalEntries.length === 0
+    ) {
+
+        addJournalEntry();
+
+    } else {
+
+        journalEntries.forEach(
+            entry => {
+
+                addJournalEntry(
+                    entry.item,
+                    entry.quantity,
+                    entry.costPerUnit,
+                    entry.sell
+                );
+
+            }
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   HISTORY
+   ========================================================= */
+
+function todayString() {
+
+    const now =
+        new Date();
+
+
+    const month =
+        now.getMonth() + 1;
+
+
+    const day =
+        now.getDate();
+
+
+    const year =
+        now.getFullYear()
+            .toString()
+            .slice(-2);
+
+
+    return (
+        month +
+        "/" +
+        day +
+        "/" +
+        year
+    );
+
+}
+
+
+function collectMaterialsSnapshot() {
+
+    const rows =
+        document.querySelectorAll(
+            ".material-row"
+        );
+
+
+    const materials = [];
+
+
+    rows.forEach(row => {
+
+        const checkbox =
+            row.querySelector(
+                ".material-returnable"
+            );
+
+
+        materials.push({
+
+            amount:
+                row.querySelector(
+                    ".material-amount"
+                ).value,
+
+            name:
+                row.querySelector(
+                    ".material-name"
+                ).value,
+
+            price:
+                row.querySelector(
+                    ".material-price"
+                ).value,
+
+            returnable:
+                checkbox
+                    ? checkbox.checked
+                    : true,
+
+            totalNeeded:
+                row.querySelector(
+                    ".total-needed"
+                ).textContent,
+
+            returned:
+                row.querySelector(
+                    ".returned"
+                ).textContent,
+
+            netCost:
+                row.querySelector(
+                    ".net-material-box"
+                ).textContent
+
+        });
+
+    });
+
+
+    return materials;
+
+}
+
+
+async function saveToHistory() {
+
+    calculate();
+
+    const itemName = document.getElementById("itemName").value.trim() || "Unnamed Item";
+    const notes = document.getElementById("craftNotes").value.trim();
+
+    const entry = {
+        date: todayString(),
+        item: itemName,
+        investment: lastInvestment,
+        notes: notes,
+        snapshot: {
+            itemName,
+            quantity: document.getElementById("quantity").value,
+            sellPrice: document.getElementById("sellPrice").value,
+            craftingFee: document.getElementById("craftingFee").value,
+            returnRate,
+            blackMarketTaxRate,
+            materials: collectMaterialsSnapshot(),
+            results: JSON.parse(JSON.stringify(lastResults)),
+            notes
+        }
+    };
+
+    const docId = await window.fbSaveHistory(entry);
+    entry.__docId = docId;
+
+    craftHistory.unshift(entry);
+    renderHistory();
+}
+
+
+async function deleteHistoryEntry(index) {
+
+    if (!confirm("Are you sure you want to delete this?")) return;
+
+    const entry = craftHistory[index];
+    if (entry.__docId) {
+        await window.fbDeleteHistory(entry.__docId);
+    }
+    craftHistory.splice(index, 1);
+    renderHistory();
+
+
+}
+
+
+async function loadHistory() {
+
+    await window.firebaseReady;
+    try {
+        craftHistory = await window.fbLoadHistory();
+
+    }catch(error) {
+        console.error("Failed to load from your database history (firebase)")
+        craftHistory = [];
+    }
+    renderHistory();
+
+}
+
+
+function renderHistory() {
+
+    const list =
+        document.getElementById(
+            "historyList"
+        );
+
+
+    if (
+        craftHistory.length === 0
+    ) {
+
+        list.innerHTML =
+            '<div class="history-empty">No crafting history yet</div>';
+
+    } else {
+
+        list.innerHTML =
+            craftHistory
+                .map(
+                    (entry, index) => {
+
+                        let line =
+                            escapeHTML(
+                                entry.date
+                            ) +
+                            " - crafted " +
+                            escapeHTML(
+                                entry.item
+                            ) +
+                            ", " +
+                            formatNumber(
+                                getNumber(
+                                    entry.investment
+                                )
+                            ) +
+                            " investment";
+
+
+                        if (
+                            entry.notes
+                        ) {
+
+                            line +=
+                                " - " +
+                                escapeHTML(
+                                    entry.notes
+                                );
+
+                        }
+
+
+                        return (
+
+                            '<div class="history-entry">' +
+
+                            '<div ' +
+                            'class="history-entry-text" ' +
+                            'onclick="openStaticView(' +
+                            index +
+                            ')">' +
+
+                            line +
+
+                            '</div>' +
+
+                            '<button ' +
+                            'class="history-delete" ' +
+                            'onclick="event.stopPropagation(); deleteHistoryEntry(' +
+                            index +
+                            ')">' +
+
+                            '×' +
+
+                            '</button>' +
+
+                            '</div>'
+
+                        );
+
+                    }
+                )
+                .join("");
+
+    }
+
+
+    if (showingJSON) {
+
+        document.getElementById(
+            "historyJSON"
+        ).textContent =
+            JSON.stringify(
+                craftHistory,
+                null,
+                2
+            );
+
+    }
+
+}
+
+
+/* =========================================================
+   JSON
+   ========================================================= */
+
+function toggleJSONView() {
+
+    showingJSON =
+        !showingJSON;
+
+
+    const list =
+        document.getElementById(
+            "historyList"
+        );
+
+
+    const jsonView =
+        document.getElementById(
+            "historyJSON"
+        );
+
+
+    const btn =
+        document.getElementById(
+            "jsonToggleBtn"
+        );
+
+
+    if (showingJSON) {
+
+        list.style.display =
+            "none";
+
+
+        jsonView.style.display =
+            "block";
+
+
+        jsonView.textContent =
+            JSON.stringify(
+                craftHistory,
+                null,
+                2
+            );
+
+
+        btn.textContent =
+            "View List";
+
+    } else {
+
+        list.style.display =
+            "block";
+
+
+        jsonView.style.display =
+            "none";
+
+
+        btn.textContent =
+            "View JSON";
+
+    }
+
+}
+
+
+function exportHistoryJSON() {
+
+    if (
+        craftHistory.length === 0
+    ) {
+
+        alert(
+            "No history to export yet."
+        );
+
+        return;
+
+    }
+
+
+    const dataStr =
+        JSON.stringify(
+            craftHistory,
+            null,
+            2
+        );
+
+
+    const blob =
+        new Blob(
+            [dataStr],
+            {
+                type:
+                    "application/json"
+            }
+        );
+
+
+    const url =
+        URL.createObjectURL(
+            blob
+        );
+
+
+    const link =
+        document.createElement(
+            "a"
+        );
+
+
+    link.href =
+        url;
+
+
+    link.download =
+        "crafting-history-" +
+        todayString()
+            .replace(/\//g, "-") +
+        ".json";
+
+
+    document.body.appendChild(
+        link
+    );
+
+
+    link.click();
+
+
+    document.body.removeChild(
+        link
+    );
+
+
+    URL.revokeObjectURL(
+        url
+    );
+
+}
+
+
+/* =========================================================
+   STATIC HISTORY VIEW
+   ========================================================= */
+
+function buildStaticHTML(entry) {
+
+    const snapshot =
+        entry.snapshot;
+
+
+    if (!snapshot) {
+
+        return (
+            '<div class="history-empty">' +
+            'No detailed snapshot was saved for this entry.' +
+            '</div>'
+        );
+
+    }
+
+
+    const results =
+        snapshot.results ||
+        {};
+
+
+    const profit =
+        getNumber(
+            results.profit
+        );
+
+
+    const profitClass =
+        profit >= 0
+            ? "profit"
+            : "loss";
+
+
+    let materialsHTML =
+        "";
+
+
+    (
+        snapshot.materials ||
+        []
+    ).forEach(
+        material => {
+
+            materialsHTML +=
+
+                '<div class="static-material-row">' +
+
+                '<div>' +
+                escapeHTML(
+                    material.amount ||
+                    "0"
+                ) +
+                '</div>' +
+
+                '<div>' +
+                escapeHTML(
+                    material.name ||
+                    "-"
+                ) +
+                '</div>' +
+
+                '<div>' +
+                escapeHTML(
+                    material.price ||
+                    "0"
+                ) +
+                '</div>' +
+
+                '<div>' +
+                escapeHTML(
+                    material.totalNeeded ||
+                    "0"
+                ) +
+                '</div>' +
+
+                '<div>' +
+                escapeHTML(
+                    material.returned ||
+                    "0"
+                ) +
+                '</div>' +
+
+                '<div>' +
+                escapeHTML(
+                    material.netCost ||
+                    "0"
+                ) +
+                '</div>' +
+
+                '</div>';
+
+        }
+    );
+
+
+    if (
+        materialsHTML === ""
+    ) {
+
+        materialsHTML =
+            '<div class="history-empty">' +
+            'No materials were recorded.' +
+            '</div>';
+
+    }
+
+
+    let html = "";
+
+
+    html +=
+        '<div class="static-badge">' +
+        'Saved on ' +
+        escapeHTML(
+            entry.date
+        ) +
+        '</div>';
+
+
+    /*
+       CRAFTED ITEM
+    */
+
+    html +=
+        '<div class="static-card">';
+
+    html +=
+        '<h3>Crafted Item</h3>';
+
+    html +=
+        '<div class="static-grid">';
+
+
+    html +=
+        '<div>' +
+        '<div class="static-field-label">Item Name</div>' +
+        '<div class="static-field-value">' +
+        escapeHTML(
+            snapshot.itemName ||
+            "Unnamed Item"
+        ) +
+        '</div>' +
+        '</div>';
+
+
+    html +=
+        '<div>' +
+        '<div class="static-field-label">Quantity Crafted</div>' +
+        '<div class="static-field-value">' +
+        formatNumber(
+            getNumber(
+                snapshot.quantity
+            )
+        ) +
+        '</div>' +
+        '</div>';
+
+
+    html +=
+        '<div>' +
+        '<div class="static-field-label">Black Market Price / Item</div>' +
+        '<div class="static-field-value">' +
+        formatNumber(
+            getNumber(
+                snapshot.sellPrice
+            )
+        ) +
+        '</div>' +
+        '</div>';
+
+
+    html +=
+        '<div>' +
+        '<div class="static-field-label">Crafting Fee / Item</div>' +
+        '<div class="static-field-value">' +
+        formatNumber(
+            getNumber(
+                snapshot.craftingFee
+            )
+        ) +
+        '</div>' +
+        '</div>';
+
+
+    html +=
+        '<div>' +
+        '<div class="static-field-label">Effective RRR</div>' +
+        '<div class="static-field-value">' +
+        formatNumber(
+            getNumber(
+                snapshot.returnRate
+            )
+        ) +
+        '%' +
+        '</div>' +
+        '</div>';
+
+
+    html +=
+        '<div>' +
+        '<div class="static-field-label">Black Market Tax</div>' +
+        '<div class="static-field-value">' +
+        formatNumber(
+            getNumber(
+                snapshot.blackMarketTaxRate
+            )
+        ) +
+        '%' +
+        '</div>' +
+        '</div>';
+
+
+    html +=
+        '</div>';
+
+    html +=
+        '</div>';
+
+
+    /*
+       MATERIALS
+    */
+
+    html +=
+        '<div class="static-card">';
+
+    html +=
+        '<h3>What it Needed</h3>';
+
+
+    html +=
+        '<div class="static-material-header">' +
+
+        '<div>Amount</div>' +
+
+        '<div>Material</div>' +
+
+        '<div>Price / Unit</div>' +
+
+        '<div>Total Needed</div>' +
+
+        '<div>Returned</div>' +
+
+        '<div>Net Cost</div>' +
+
+        '</div>';
+
+
+    html +=
+        materialsHTML;
+
+
+    html +=
+        '</div>';
+
+
+    /*
+       RESULTS
+    */
+
+    html +=
+        '<div class="static-card">';
+
+    html +=
+        '<h3>Results</h3>';
+
+
+    html +=
+        '<div class="results">';
+
+
+    html +=
+        resultCard(
+            "Gross Material Cost",
+            formatNumber(
+                getNumber(
+                    results.grossMaterialCost
+                )
+            ),
+            "yellow"
+        );
+
+
+    html +=
+        resultCard(
+            "Returned Material Value",
+            formatNumber(
+                getNumber(
+                    results.returnedValue
+                )
+            ),
+            "purple"
+        );
+
+
+    html +=
+        resultCard(
+            "Net Material Cost",
+            formatNumber(
+                getNumber(
+                    results.netMaterialCost
+                )
+            ),
+            "yellow"
+        );
+
+
+    html +=
+        resultCard(
+            "Crafting Fees",
+            formatNumber(
+                getNumber(
+                    results.craftingFees
+                )
+            ),
+            "yellow"
+        );
+
+
+    html +=
+        resultCard(
+            "Total Investment",
+            formatNumber(
+                getNumber(
+                    results.investment
+                )
+            ),
+            ""
+        );
+
+
+    html +=
+        resultCard(
+            "Gross Black Market Revenue",
+            formatNumber(
+                getNumber(
+                    results.grossRevenue
+                )
+            ),
+            "blue"
+        );
+
+
+    html +=
+        resultCard(
+            "Black Market Tax",
+            formatNumber(
+                getNumber(
+                    results.blackMarketTax
+                )
+            ),
+            "red"
+        );
+
+
+    html +=
+        resultCard(
+            "Net Revenue",
+            formatNumber(
+                getNumber(
+                    results.revenue
+                )
+            ),
+            "blue"
+        );
+
+
+    html +=
+        resultCard(
+            "Profit",
+            formatNumber(
+                profit
+            ),
+            profitClass
+        );
+
+
+    html +=
+        resultCard(
+            "Profit / Item",
+            formatNumber(
+                getNumber(
+                    results.profitPerItem
+                )
+            ),
+            profitClass
+        );
+
+
+    html +=
+        resultCard(
+            "Profit Margin",
+            getNumber(
+                results.margin
+            ).toFixed(2) +
+            "%",
+            profitClass
+        );
+
+
+    html +=
+        resultCard(
+            "ROI",
+            getNumber(
+                results.roi
+            ).toFixed(2) +
+            "%",
+            profitClass
+        );
+
+
+    html +=
+        '</div>';
+
+    html +=
+        '</div>';
+
+
+    /*
+       NOTES
+    */
+
+    if (
+        snapshot.notes
+    ) {
+
+        html +=
+            '<div class="static-card">';
+
+        html +=
+            '<h3>Notes</h3>';
+
+        html +=
+            '<div class="static-notes">' +
+            escapeHTML(
+                snapshot.notes
+            ) +
+            '</div>';
+
+        html +=
+            '</div>';
+
+    }
+
+
+    return html;
+
+}
+
+
+function resultCard(
+    title,
+    value,
+    colorClass
+) {
+
+    return (
+
+        '<div class="result">' +
+
+        '<div class="result-title">' +
+        escapeHTML(title) +
+        '</div>' +
+
+        '<div class="result-value ' +
+        colorClass +
+        '">' +
+        escapeHTML(value) +
+        '</div>' +
+
+        '</div>'
+
+    );
+
+}
+
+
+function openStaticView(index) {
+
+    const entry =
+        craftHistory[index];
+
+
+    if (!entry) {
+        return;
+    }
+
+
+    document.getElementById(
+        "staticContent"
+    ).innerHTML =
+        buildStaticHTML(
+            entry
+        );
+
+
+    document.getElementById(
+        "historyModal"
+    ).classList.remove(
+        "open"
+    );
+
+
+    document.getElementById(
+        "staticModal"
+    ).classList.add(
+        "open"
+    );
+
+}
+
+
+function closeStaticView() {
+
+    document.getElementById(
+        "staticModal"
+    ).classList.remove(
+        "open"
+    );
+
+}
+
+
+function backToHistory() {
+
+    document.getElementById(
+        "staticModal"
+    ).classList.remove(
+        "open"
+    );
+
+
+    document.getElementById(
+        "historyModal"
+    ).classList.add(
+        "open"
+    );
+
+}
+
+
+function openHistory() {
+
+    showingJSON =
+        false;
+
+
+    document.getElementById(
+        "historyList"
+    ).style.display =
+        "block";
+
+
+    document.getElementById(
+        "historyJSON"
+    ).style.display =
+        "none";
+
+
+    document.getElementById(
+        "jsonToggleBtn"
+    ).textContent =
+        "View JSON";
+
+
+    renderHistory();
+
+
+    document.getElementById(
+        "historyModal"
+    ).classList.add(
+        "open"
+    );
+
+}
+
+
+function closeHistory() {
+
+    document.getElementById(
+        "historyModal"
+    ).classList.remove(
+        "open"
+    );
+
+}
+
+
+/* =========================================================
+   MODAL EVENTS
+   ========================================================= */
+
+document
+    .getElementById("historyModal")
+    .addEventListener(
+        "click",
+        function(e) {
+
+            if (
+                e.target === this
+            ) {
+
+                closeHistory();
+
+            }
+
+        }
+    );
+
+
+document
+    .getElementById("staticModal")
+    .addEventListener(
+        "click",
+        function(e) {
+
+            if (
+                e.target === this
+            ) {
+
+                closeStaticView();
+
+            }
+
+        }
+    );
+
+
+/* =========================================================
+   ESC KEY
+   ========================================================= */
+
+document.addEventListener(
+    "keydown",
+    function(e) {
+
+        if (
+            e.key === "Escape"
+        ) {
+
+            closeHistory();
+
+            closeStaticView();
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   INITIAL MATERIALS
+   ========================================================= */
+
+addMaterial();
+
+addMaterial();
+
+
+/* =========================================================
+   INITIAL CALCULATION
+   ========================================================= */
+
+calculate();
+
+
+/* =========================================================
+   LOAD SAVED DATA
+   ========================================================= */
+
+window.firebaseReady.then(() => {
+    window.onAuthStateChanged(handleAuthUI);
+});
+
+</script>
+
+</body>
+
+</html>

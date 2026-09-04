@@ -1,0 +1,42 @@
+[
+  {
+    "date": "8/11/26",
+    "item": "Unnamed Item",
+    "investment": 0,
+    "notes": "",
+    "snapshot": {
+      "itemName": "Unnamed Item",
+      "quantity": "100",
+      "sellPrice": "17000",
+      "craftingFee": "0",
+      "materials": [
+        {
+          "amount": "",
+          "name": "",
+          "price": "",
+          "totalNeeded": "0",
+          "returned": "0"
+        },
+        {
+          "amount": "",
+          "name": "",
+          "price": "",
+          "totalNeeded": "0",
+          "returned": "0"
+        }
+      ],
+      "results": {
+        "grossMaterialCost": 0,
+        "returnedValue": 0,
+        "craftingFees": 0,
+        "investment": 0,
+        "revenue": 1700000,
+        "profit": 1700000,
+        "profitPerItem": 17000,
+        "margin": 100,
+        "roi": 0
+      },
+      "notes": ""
+    }
+  }
+]
