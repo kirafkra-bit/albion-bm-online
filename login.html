@@ -42,7 +42,7 @@
         Sign in with Google
       </button>
 
-      <p class="auth-switch">New here? <a href="register.html">Create an account</a></p>
+      <p class="auth-switch">New here? <a class="auth-transition-link" href="register.html">Create an account</a></p>
       <p class="auth-security"><span aria-hidden="true">Secure</span> Your account is protected by Firebase Authentication.</p>
     </section>
   </main>
@@ -61,6 +61,7 @@
     const authCard = document.getElementById("authCard");
     const authLoading = document.getElementById("authLoading");
     const forgotPassword = document.getElementById("forgotPassword");
+    const authTransitionLink = document.querySelector(".auth-transition-link");
 
     function showMessage(text) {
     message.textContent = text;
@@ -109,6 +110,16 @@
     function pauseForFlip() {
       return new Promise(resolve => setTimeout(resolve, 560));
     }
+
+    authTransitionLink.addEventListener("click", event => {
+      event.preventDefault();
+      authCard.classList.add("is-flipping");
+      authLoading.classList.add("is-visible", "is-action");
+      authLoading.querySelector("span").textContent = "Opening registration...";
+      setTimeout(() => {
+        window.location.href = authTransitionLink.href;
+      }, 560);
+    });
 
     form.addEventListener("submit", async event => {
     event.preventDefault();

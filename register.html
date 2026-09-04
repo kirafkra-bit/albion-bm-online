@@ -38,7 +38,7 @@
         <p id="message" class="auth-message" role="alert" aria-live="polite"></p>
       </form>
 
-      <p class="auth-switch">Already registered? <a href="login.html">Log in</a></p>
+      <p class="auth-switch">Already registered? <a class="auth-transition-link" href="login.html">Log in</a></p>
       <p class="auth-security"><span aria-hidden="true">Secure</span> Passwords are securely managed by Firebase.</p>
     </section>
   </main>
@@ -55,6 +55,7 @@
     const message = document.getElementById("message");
     const authCard = document.getElementById("authCard");
     const authLoading = document.getElementById("authLoading");
+    const authTransitionLink = document.querySelector(".auth-transition-link");
 
     function authErrorMessage(error) {
     if (error.code === "auth/email-already-in-use") {
@@ -64,6 +65,16 @@
     function pauseForFlip() {
       return new Promise(resolve => setTimeout(resolve, 560));
     }
+
+    authTransitionLink.addEventListener("click", event => {
+      event.preventDefault();
+      authCard.classList.add("is-flipping");
+      authLoading.classList.add("is-visible", "is-action");
+      authLoading.querySelector("span").textContent = "Opening sign in...";
+      setTimeout(() => {
+        window.location.href = authTransitionLink.href;
+      }, 560);
+    });
     if (error.code === "auth/invalid-email") {
       return "Enter a valid email address.";
     }
