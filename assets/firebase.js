@@ -6,6 +6,7 @@ import {
   signInWithPopup,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  sendPasswordResetEmail,
   signOut,
   onAuthStateChanged,
   setPersistence,
@@ -58,6 +59,11 @@ window.fbRegister = async function (email, password) {
 window.fbEmailSignIn = async function (email, password) {
   await authReady;
   await signInWithEmailAndPassword(auth, email, password);
+};
+
+window.fbResetPassword = async function (email) {
+  await authReady;
+  await sendPasswordResetEmail(auth, email);
 };
 
 window.fbSignOut = async function () {

@@ -12,6 +12,41 @@ body {
 
 /* AUTH */
 
+.auth-loading {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 14px;
+    background: #0f172a;
+    color: #cbd5e1;
+    font-size: 13px;
+    opacity: 1;
+    transition: opacity .3s ease, visibility .3s ease;
+}
+
+.auth-loading:not(.is-visible) {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.loading-spinner {
+    width: 34px;
+    height: 34px;
+    border: 3px solid #334155;
+    border-top-color: #a78bfa;
+    border-radius: 50%;
+    animation: authSpin .8s linear infinite;
+}
+
+@keyframes authSpin {
+    to { transform: rotate(360deg); }
+}
+
 .auth-shell {
     min-height: calc(100vh - 50px);
     display: grid;
@@ -53,6 +88,17 @@ body {
     border: 1px solid #334155;
     border-radius: 20px;
     box-shadow: 0 24px 70px rgba(0, 0, 0, .35);
+    backface-visibility: hidden;
+}
+
+.auth-card.is-flipping {
+    animation: authFlip .55s ease;
+}
+
+@keyframes authFlip {
+    0% { transform: perspective(900px) rotateY(0); }
+    45% { transform: perspective(900px) rotateY(8deg) translateY(-3px); }
+    100% { transform: perspective(900px) rotateY(0); }
 }
 
 .auth-brand {
@@ -114,6 +160,19 @@ body {
     margin-bottom: 7px;
 }
 
+.auth-forgot {
+    justify-self: end;
+    margin: -1px 0 5px;
+    color: #a78bfa;
+    font-size: 12px;
+    text-decoration: none;
+}
+
+.auth-forgot:hover {
+    color: #c4b5fd;
+    text-decoration: underline;
+}
+
 .auth-primary,
 .auth-google {
     width: 100%;
@@ -122,6 +181,29 @@ body {
     font-size: 14px;
     font-weight: bold;
     cursor: pointer;
+    position: relative;
+}
+
+.auth-primary.is-loading,
+.auth-google.is-loading {
+    color: transparent;
+    pointer-events: none;
+}
+
+.auth-primary.is-loading::after,
+.auth-google.is-loading::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 17px;
+    height: 17px;
+    margin: -9px 0 0 -9px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    color: #fff;
+    animation: authSpin .7s linear infinite;
 }
 
 .auth-primary {
@@ -952,6 +1034,10 @@ textarea:disabled {
 
     .card {
         padding: 15px;
+    }
+
+    .auth-card {
+        padding: 28px 20px;
     }
 
     .material-row {

@@ -7,8 +7,12 @@
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
+  <div class="auth-loading" id="authLoading" role="status" aria-live="polite">
+    <div class="loading-spinner"></div>
+    <span>Connecting securely...</span>
+  </div>
   <main class="auth-shell">
-    <section class="auth-card" aria-labelledby="loginTitle">
+    <section class="auth-card" id="authCard" aria-labelledby="loginTitle">
       <a class="auth-brand" href="index.html" aria-label="Albion Calculator home">
         <span class="auth-brand-mark">A</span>
         <span>Albion Calculator</span>
@@ -25,6 +29,7 @@
 
         <label for="password">Password</label>
         <input id="password" type="password" required autocomplete="current-password">
+        <a class="auth-forgot" href="#" id="forgotPassword">Forgot password?</a>
 
         <button class="auth-primary" type="submit" id="loginButton">Log in</button>
         <p id="message" class="auth-message" role="alert" aria-live="polite"></p>
@@ -53,6 +58,9 @@
     const loginButton = document.getElementById("loginButton");
     const googleButton = document.getElementById("googleButton");
     const message = document.getElementById("message");
+    const authCard = document.getElementById("authCard");
+    const authLoading = document.getElementById("authLoading");
+    const forgotPassword = document.getElementById("forgotPassword");
 
     function showMessage(text) {
     message.textContent = text;
@@ -79,6 +87,23 @@
     }
     }
 
+    function startAuthTransition(button) {
+      authCard.classList.add("is-flipping");
+      button.classList.add("is-loading");
+      button.setAttribute("aria-busy", "true");
+      button.disabled = true;
+      authLoading.classList.add("is-visible");
+      authLoading.querySelector("span").textContent = "Signing you in...";
+    }
+
+    function stopAuthTransition(button) {
+      authCard.classList.remove("is-flipping");
+      button.classList.remove("is-loading");
+      button.removeAttribute("aria-busy");
+      button.disabled = false;
+      authLoading.classList.remove("is-visible");
+    }
+
     form.addEventListener("submit", async event => {
     event.preventDefault();
 
@@ -86,7 +111,7 @@
     const password = document.getElementById("password").value;
     if (!form.reportValidity()) return;
 
-    loginButton.disabled = true;
+    startAuthTransition(loginButton);
     showMessage("");
     try {
       await waitForFirebase();
@@ -95,12 +120,12 @@
     } catch (error) {
       showMessage(authErrorMessage(error));
     } finally {
-      loginButton.disabled = false;
+      stopAuthTransition(loginButton);
     }
     });
 
     googleButton.addEventListener("click", async () => {
-    googleButton.disabled = true;
+    startAuthTransition(googleButton);
     showMessage("");
     try {
       await waitForFirebase();
@@ -109,11 +134,33 @@
     } catch (error) {
       showMessage(authErrorMessage(error));
     } finally {
-      googleButton.disabled = false;
+      stopAuthTransition(googleButton);
     }
     });
 
+    forgotPassword.addEventListener("click", async event => {
+      event.preventDefault();
+      const email = document.getElementById("email").value.trim();
+      if (!email || !document.getElementById("email").checkValidity()) {
+        showMessage("Enter your email address first, then try again.");
+        document.getElementById("email").focus();
+        return;
+      }
+      authLoading.classList.add("is-visible");
+      authLoading.querySelector("span").textContent = "Sending reset email...";
+      try {
+        await waitForFirebase();
+        await window.fbResetPassword(email);
+        showMessage("If an account exists for that email, a reset link has been sent.");
+      } catch (error) {
+        showMessage("Unable to send a reset link. Please try again.");
+      } finally {
+        authLoading.classList.remove("is-visible");
+      }
+    });
+
     window.firebaseReady.then(() => {
+    authLoading.classList.remove("is-visible");
     window.onAuthStateChanged(user => {
       if (user) window.location.replace("index.html");
     });

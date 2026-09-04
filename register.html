@@ -7,8 +7,12 @@
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
+  <div class="auth-loading" id="authLoading" role="status" aria-live="polite">
+    <div class="loading-spinner"></div>
+    <span>Connecting securely...</span>
+  </div>
   <main class="auth-shell">
-    <section class="auth-card" aria-labelledby="registerTitle">
+    <section class="auth-card" id="authCard" aria-labelledby="registerTitle">
       <a class="auth-brand" href="index.html" aria-label="Albion Calculator home">
         <span class="auth-brand-mark">A</span>
         <span>Albion Calculator</span>
@@ -49,6 +53,8 @@
     const form = document.getElementById("registerForm");
     const registerButton = document.getElementById("registerButton");
     const message = document.getElementById("message");
+    const authCard = document.getElementById("authCard");
+    const authLoading = document.getElementById("authLoading");
 
     function authErrorMessage(error) {
     if (error.code === "auth/email-already-in-use") {
@@ -80,7 +86,12 @@
       return;
     }
 
+    authCard.classList.add("is-flipping");
+    registerButton.classList.add("is-loading");
+    registerButton.setAttribute("aria-busy", "true");
     registerButton.disabled = true;
+    authLoading.classList.add("is-visible");
+    authLoading.querySelector("span").textContent = "Creating your account...";
     message.textContent = "";
     try {
       await window.firebaseReady;
@@ -89,11 +100,16 @@
     } catch (error) {
       message.textContent = authErrorMessage(error);
     } finally {
+      authCard.classList.remove("is-flipping");
+      registerButton.classList.remove("is-loading");
+      registerButton.removeAttribute("aria-busy");
       registerButton.disabled = false;
+      authLoading.classList.remove("is-visible");
     }
     });
 
     window.firebaseReady.then(() => {
+    authLoading.classList.remove("is-visible");
     window.onAuthStateChanged(user => {
       if (user) window.location.replace("index.html");
     });
