@@ -7,7 +7,9 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  setPersistence,
+  browserLocalPersistence
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
   getFirestore,
@@ -37,22 +39,29 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const historyCol = collection(db, "craftHistory");
 const provider = new GoogleAuthProvider();
+const authReady = setPersistence(auth, browserLocalPersistence);
+
+window.firebaseReady = authReady;
 
 /* ---------- AUTH ---------- */
 
 window.fbSignIn = async function () {
+  await authReady;
   await signInWithPopup(auth, provider);
 };
 
 window.fbRegister = async function (email, password) {
+  await authReady;
   await createUserWithEmailAndPassword(auth, email, password);
 };
 
 window.fbEmailSignIn = async function (email, password) {
+  await authReady;
   await signInWithEmailAndPassword(auth, email, password);
 };
 
 window.fbSignOut = async function () {
+  await authReady;
   await signOut(auth);
 };
 
@@ -92,8 +101,9 @@ window.fbDeleteHistory = async function (docId) {
   await deleteDoc(doc(db, "craftHistory", docId));
 };
 
-if (typeof window.resolveFirebaseReady === "function") {
-  window.resolveFirebaseReady();
-} else {
+authReady.then(() => {
+  if (typeof window.resolveFirebaseReady === "function") {
+    window.resolveFirebaseReady();
+  }
   window.dispatchEvent(new Event("firebase-ready"));
-}
+});

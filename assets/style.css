@@ -55,6 +55,45 @@ h1 {
     box-shadow: 0 5px 25px rgba(0,0,0,.25);
 }
 
+#authPanel {
+    max-width: 460px;
+    margin: 0 auto 20px;
+}
+
+#authPanel form,
+.container > .card form {
+    display: grid;
+    gap: 10px;
+}
+
+#authPanel button,
+.container > .card button {
+    width: 100%;
+    margin-top: 6px;
+}
+
+#authPanel p,
+.container > .card p {
+    color: #cbd5e1;
+}
+
+#authMessage,
+#message {
+    min-height: 20px;
+    color: #fca5a5;
+}
+
+button:disabled {
+    opacity: .65;
+    cursor: wait;
+}
+
+hr {
+    border: 0;
+    border-top: 1px solid #475569;
+    margin: 22px 0;
+}
+
 h2 {
     margin-top: 0;
     margin-bottom: 20px;

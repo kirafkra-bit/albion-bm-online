@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Create Account</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <main class="container">
+    <section class="card">
+      <h2>Create account</h2>
+
+      <form id="registerForm" novalidate>
+        <label for="email">Email</label>
+        <input id="email" type="email" required autocomplete="email">
+
+        <label for="password">Password</label>
+        <input id="password" type="password" required minlength="8" autocomplete="new-password">
+
+        <label for="confirmPassword">Re-enter Password</label>
+        <input id="confirmPassword" type="password" required minlength="8" autocomplete="new-password">
+
+        <button type="submit" id="registerButton">Create account</button>
+        <p id="message" role="alert"></p>
+      </form>
+
+      <p>Already registered? <a href="login.html">Log in</a></p>
+    </section>
+  </main>
+
+  <script>
+    window.firebaseReady = new Promise(resolve => {
+      window.resolveFirebaseReady = resolve;
+    });
+  </script>
+  <script type="module" src="assets/firebase.js"></script>
+  <script>
+    const form = document.getElementById("registerForm");
+    const registerButton = document.getElementById("registerButton");
+    const message = document.getElementById("message");
+
+    function authErrorMessage(error) {
+    if (error.code === "auth/email-already-in-use") {
+      return "Unable to create the account. Check the email or sign in instead.";
+    }
+    if (error.code === "auth/invalid-email") {
+      return "Enter a valid email address.";
+    }
+    if (error.code === "auth/too-many-requests") {
+      return "Too many attempts. Please wait a moment and try again.";
+    }
+    return "Unable to create the account. Please check your details and try again.";
+    }
+
+    form.addEventListener("submit", async event => {
+    event.preventDefault();
+
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+    const confirmPassword = document.getElementById("confirmPassword").value;
+
+    if (!form.reportValidity()) return;
+    if (password.length < 8) {
+      message.textContent = "Password must be at least 8 characters.";
+      return;
+    }
+    if (password !== confirmPassword) {
+      message.textContent = "Passwords do not match.";
+      return;
+    }
+
+    registerButton.disabled = true;
+    message.textContent = "";
+    try {
+      await window.firebaseReady;
+      await window.fbRegister(email, password);
+      window.location.href = "index.html";
+    } catch (error) {
+      message.textContent = authErrorMessage(error);
+    } finally {
+      registerButton.disabled = false;
+    }
+    });
+
+    window.firebaseReady.then(() => {
+    window.onAuthStateChanged(user => {
+      if (user) window.location.replace("index.html");
+    });
+    });
+  </script>
+</body>
+</html>
