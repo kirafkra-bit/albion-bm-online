@@ -4,6 +4,8 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
@@ -42,6 +44,14 @@ window.fbSignIn = async function () {
   await signInWithPopup(auth, provider);
 };
 
+window.fbRegister = async function (email, password) {
+  await createUserWithEmailAndPassword(auth, email, password);
+};
+
+window.fbEmailSignIn = async function (email, password) {
+  await signInWithEmailAndPassword(auth, email, password);
+};
+
 window.fbSignOut = async function () {
   await signOut(auth);
 };
@@ -68,7 +78,7 @@ window.fbSaveHistory = async function (entry) {
   return docRef.id;
 };
 
-window.fbLoadHistory = async function () {``
+window.fbLoadHistory = async function () {
   const q = query(
     historyCol,
     where("uid", "==", currentUid()),
@@ -82,4 +92,8 @@ window.fbDeleteHistory = async function (docId) {
   await deleteDoc(doc(db, "craftHistory", docId));
 };
 
-window.resolveFirebaseReady();
+if (typeof window.resolveFirebaseReady === "function") {
+  window.resolveFirebaseReady();
+} else {
+  window.dispatchEvent(new Event("firebase-ready"));
+}

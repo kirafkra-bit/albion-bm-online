@@ -1,0 +1,17 @@
+rules_version = '2';
+
+service cloud.firestore {
+    match /databases/{database}/documents {
+        match /craftHistory/{documentId} {
+            allow read, delete: if isOwner(resource.data);
+            allow create: if isOwner(request.resource.data);
+            allow update: if isOwner(resource.data)
+                && isOwner(request.resource.data);
+        }
+
+        function isOwner(data) {
+            return request.auth != null
+                && data.uid == request.auth.uid;
+        }
+    }
+}
