@@ -60,6 +60,10 @@
     if (error.code === "auth/email-already-in-use") {
       return "Unable to create the account. Check the email or sign in instead.";
     }
+
+    function pauseForFlip() {
+      return new Promise(resolve => setTimeout(resolve, 560));
+    }
     if (error.code === "auth/invalid-email") {
       return "Enter a valid email address.";
     }
@@ -91,9 +95,11 @@
     registerButton.setAttribute("aria-busy", "true");
     registerButton.disabled = true;
     authLoading.classList.add("is-visible");
+    authLoading.classList.add("is-action");
     authLoading.querySelector("span").textContent = "Creating your account...";
     message.textContent = "";
     try {
+      await pauseForFlip();
       await window.firebaseReady;
       await window.fbRegister(email, password);
       window.location.href = "index.html";
@@ -105,11 +111,13 @@
       registerButton.removeAttribute("aria-busy");
       registerButton.disabled = false;
       authLoading.classList.remove("is-visible");
+      authLoading.classList.remove("is-action");
     }
     });
 
     window.firebaseReady.then(() => {
     authLoading.classList.remove("is-visible");
+    authLoading.classList.remove("is-action");
     window.onAuthStateChanged(user => {
       if (user) window.location.replace("index.html");
     });

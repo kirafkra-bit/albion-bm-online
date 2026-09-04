@@ -93,6 +93,7 @@
       button.setAttribute("aria-busy", "true");
       button.disabled = true;
       authLoading.classList.add("is-visible");
+      authLoading.classList.add("is-action");
       authLoading.querySelector("span").textContent = "Signing you in...";
     }
 
@@ -102,6 +103,11 @@
       button.removeAttribute("aria-busy");
       button.disabled = false;
       authLoading.classList.remove("is-visible");
+      authLoading.classList.remove("is-action");
+    }
+
+    function pauseForFlip() {
+      return new Promise(resolve => setTimeout(resolve, 560));
     }
 
     form.addEventListener("submit", async event => {
@@ -114,7 +120,8 @@
     startAuthTransition(loginButton);
     showMessage("");
     try {
-      await waitForFirebase();
+    await pauseForFlip();
+    await waitForFirebase();
       await window.fbEmailSignIn(email, password);
       window.location.href = "index.html";
     } catch (error) {
@@ -128,6 +135,7 @@
     startAuthTransition(googleButton);
     showMessage("");
     try {
+      await pauseForFlip();
       await waitForFirebase();
       await window.fbSignIn();
       window.location.href = "index.html";
