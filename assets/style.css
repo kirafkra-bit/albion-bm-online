@@ -128,13 +128,14 @@ body {
 }
 
 .auth-card.is-flipping {
-    animation: authFlip .55s ease;
+    animation: authFlip .42s cubic-bezier(.22, .61, .36, 1);
 }
 
 @keyframes authFlip {
-    0% { transform: perspective(900px) rotateY(0) scale(1); }
-    45% { transform: perspective(900px) rotateY(180deg) scale(.96); }
-    100% { transform: perspective(900px) rotateY(360deg) scale(1); }
+    0% { transform: perspective(1200px) rotateY(0) scale(1); }
+    42% { transform: perspective(1200px) rotateY(88deg) scale(.98); }
+    58% { transform: perspective(1200px) rotateY(92deg) scale(.98); }
+    100% { transform: perspective(1200px) rotateY(180deg) scale(.96); }
 }
 
 .auth-brand {

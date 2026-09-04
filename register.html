@@ -76,11 +76,9 @@
     authTransitionLink.addEventListener("click", event => {
       event.preventDefault();
       authCard.classList.add("is-flipping");
-      authLoading.classList.add("is-visible", "is-action");
-      authLoading.querySelector("span").textContent = "Opening sign in...";
-      setTimeout(() => {
+      authCard.addEventListener("animationend", () => {
         window.location.href = authTransitionLink.href;
-      }, 560);
+      }, { once: true });
     });
 
     form.addEventListener("submit", async event => {
