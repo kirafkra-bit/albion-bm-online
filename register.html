@@ -61,6 +61,14 @@
     if (error.code === "auth/email-already-in-use") {
       return "Unable to create the account. Check the email or sign in instead.";
     }
+    if (error.code === "auth/invalid-email") {
+      return "Enter a valid email address.";
+    }
+    if (error.code === "auth/too-many-requests") {
+      return "Too many attempts. Please wait a moment and try again.";
+    }
+    return "Unable to create the account. Please check your details and try again.";
+    }
 
     function pauseForFlip() {
       return new Promise(resolve => setTimeout(resolve, 560));
@@ -75,14 +83,6 @@
         window.location.href = authTransitionLink.href;
       }, 560);
     });
-    if (error.code === "auth/invalid-email") {
-      return "Enter a valid email address.";
-    }
-    if (error.code === "auth/too-many-requests") {
-      return "Too many attempts. Please wait a moment and try again.";
-    }
-    return "Unable to create the account. Please check your details and try again.";
-    }
 
     form.addEventListener("submit", async event => {
     event.preventDefault();
