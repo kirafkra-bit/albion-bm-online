@@ -689,20 +689,20 @@ function handleAuthUI(user) {
     } else {
         window.location.replace("login.html");
     }
+}
 
-    async function handleLogout() {
-        const button = document.getElementById("logoutButton");
-        if (!button) return;
-        button.disabled = true;
-        button.classList.add("is-loading");
-        try {
-            await window.firebaseReady;
-            await window.fbSignOut();
-        } catch (error) {
-            console.error("Failed to sign out:", error);
-            button.disabled = false;
-            button.classList.remove("is-loading");
-        }
+async function handleLogout() {
+    const button = document.getElementById("logoutButton");
+    if (!button) return;
+    button.disabled = true;
+    button.classList.add("is-loading");
+    try {
+        await window.firebaseReady;
+        await window.fbSignOut();
+    } catch (error) {
+        console.error("Failed to sign out:", error);
+        button.disabled = false;
+        button.classList.remove("is-loading");
     }
 }
 
