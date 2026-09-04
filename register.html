@@ -3,29 +3,39 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Create Account</title>
+  <title>Create account | Albion Calculator</title>
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-  <main class="container">
-    <section class="card">
-      <h2>Create account</h2>
+  <main class="auth-shell">
+    <section class="auth-card" aria-labelledby="registerTitle">
+      <a class="auth-brand" href="index.html" aria-label="Albion Calculator home">
+        <span class="auth-brand-mark">A</span>
+        <span>Albion Calculator</span>
+      </a>
+      <div class="auth-heading">
+        <p class="auth-eyebrow">BLACK MARKET TOOLS</p>
+        <h1 id="registerTitle">Create your account</h1>
+        <p>Save calculations and keep your crafting history synced.</p>
+      </div>
 
       <form id="registerForm" novalidate>
         <label for="email">Email</label>
-        <input id="email" type="email" required autocomplete="email">
+        <input id="email" type="email" required autocomplete="email" inputmode="email" spellcheck="false">
 
         <label for="password">Password</label>
-        <input id="password" type="password" required minlength="8" autocomplete="new-password">
+        <input id="password" type="password" required minlength="8" autocomplete="new-password" aria-describedby="passwordHint">
+        <small id="passwordHint" class="auth-hint">Use at least 8 characters.</small>
 
         <label for="confirmPassword">Re-enter Password</label>
         <input id="confirmPassword" type="password" required minlength="8" autocomplete="new-password">
 
-        <button type="submit" id="registerButton">Create account</button>
-        <p id="message" role="alert"></p>
+        <button class="auth-primary" type="submit" id="registerButton">Create account</button>
+        <p id="message" class="auth-message" role="alert" aria-live="polite"></p>
       </form>
 
-      <p>Already registered? <a href="login.html">Log in</a></p>
+      <p class="auth-switch">Already registered? <a href="login.html">Log in</a></p>
+      <p class="auth-security"><span aria-hidden="true">Secure</span> Passwords are securely managed by Firebase.</p>
     </section>
   </main>
 
